@@ -13,7 +13,7 @@ class ArticleController extends Controller
 
         if (Auth::check()) {
 
-           $article = DB::table('article')->get();
+           $article = DB::table('articles')->get();
 
             return view('article', ['article' => $article]);
 

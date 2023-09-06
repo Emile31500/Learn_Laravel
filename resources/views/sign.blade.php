@@ -5,24 +5,23 @@
 
     </title>
     <body>
-
         <form action="{{ route('sign.post') }}" method="POST">
             @csrf
             <div>
                 <label for="email">Email : </label>
-                <input type="email" name="email"id="email"/>
+                <input value="emile00013@gmail.com" type="email" name="email"id="email"/>
             </div>
             <div>
                 <label for="name">Nom : </label>
-                <input type="text" name="name" id="name"/>
+                <input value="emile" type="text" name="name" id="name"/>
             </div>
             <div>
                 <label for="password">Mot de passe : </label>
-                <input type="password" name="password" id="password"/>
+                <input value="emile" type="password" name="password" id="password"/>
             </div>
             <div>
                 <label for="confPassword">Mot de passe : </label>
-                <input type="password" name="confPassword" id="confPassword"/>
+                <input value="emile" type="password" name="confPassword" id="confPassword"/>
             </div>
             <input type="submit"/>  
             @if ($errors->any())
