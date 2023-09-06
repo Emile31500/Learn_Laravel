@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Mail\VerificationMailMailer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
 
@@ -81,7 +83,11 @@ class AuthController extends Controller
 
         } else {
 
-            Auth::login($user);
+            //Mail::to($request->user())->send(new VerificationMailMailer($user));
+            Mail::to($user)->send(new VerificationMailMailer($user));
+            
+
+            // Auth::login($user);
             return redirect('accueil/');
 
         }
