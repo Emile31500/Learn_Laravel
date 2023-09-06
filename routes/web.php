@@ -19,13 +19,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('accueil', [ArticleController::class, 'index']);
+
 
 Route::get('/sign', [AuthController::class, 'sign'])->name('sign');
 Route::get('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/sign', [AuthController::class, 'signPost'])->name('sign.post');
 Route::post('/login', [AuthController::class, 'loginPost'])->name('login.post');
+Route::get('/confirm/{codeVerif}', [AuthController::class, 'confirmEmail'])->name('confirm');
 Route::get('/logout', [AuthController::class, 'logout']);
+
+Route::get('accueil', [ArticleController::class, 'index']);
 Route::get('/article/ajouter', [ArticleController::class, 'add'])->name('article.add');
 Route::post('/article/ajouter', [ArticleController::class, 'addPost'])->name('article.add.post');
+
+
 

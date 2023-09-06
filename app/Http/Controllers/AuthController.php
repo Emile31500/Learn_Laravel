@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Mail\VerificationMailMailer;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +23,7 @@ class AuthController extends Controller
     public function sign(Request $request)
     {
 
-        return view('sign');
+        return view('sign')->with(['codeVerification' => 'string']);
 
     }
 
@@ -34,6 +35,8 @@ class AuthController extends Controller
         ]);
         
         $user = User::where('email', $request->email)->first();
+        var_dump($user);
+        die;
 
         if (!$user) {
 
@@ -54,7 +57,8 @@ class AuthController extends Controller
 
     public function signPost(Request $request)
     {
-        
+        $codeVerif = Str::random(63);
+
         $request->validate([
             'email' => 'required|unique:users|max:255',
             'name' => 'required|max:255',
@@ -64,12 +68,12 @@ class AuthController extends Controller
 
         if ($request->password === $request->confPassword){
 
-
             $user = User::create([ 
                 'email' => $request->email,
                 'name' => $request->name,
-                'password' => Hash::make($request->password)
-                ]);
+                'password' => Hash::make($request->password),
+                'code_verif' => $codeVerif
+                ]); 
 
         } else {
 
@@ -83,12 +87,8 @@ class AuthController extends Controller
 
         } else {
 
-            //Mail::to($request->user())->send(new VerificationMailMailer($user));
             Mail::to($user)->send(new VerificationMailMailer($user));
-            
-
-            // Auth::login($user);
-            return redirect('accueil/');
+            return redirect('accueil/')->with([]);
 
         }
     }
@@ -96,5 +96,28 @@ class AuthController extends Controller
     public function logout(){
         Auth::logout();
         return redirect('/');
+    }
+
+    public function confirmEmail(string $codeVerif){
+
+        $user = User::where('code_verif', $codeVerif)->first();
+        // var_dump($user);
+        // die;
+
+        if ($user) {
+
+            User::where('code_verif', $codeVerif)
+                ->where('is_verified', false)
+                ->update(['is_verified' => true, 'code_verif' => null]);
+
+            Auth::login($user);
+            return redirect('accueil/');
+
+        } else {
+
+            return redirect('confirm')->with("error", "Aucun utilisateur n'existe avec ce code de vérification");
+
+        }
+
     }
 }
