@@ -33,6 +33,14 @@
                     </ul>
                 </div>
             @endif
+
+            @if (session('info'))
+                <div class="alert alert-success">
+                    <ul>
+                        {{ session('info') }}
+                    </ul>
+                </div>
+            @endif
         </form>
     </body>
 </html>
