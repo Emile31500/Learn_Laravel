@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
+use DateTimeZone;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -59,6 +61,10 @@ class AuthController extends Controller
     {
         $codeVerif = Str::random(63);
 
+        $europe = new DateTimeZone("Europe/Paris");
+        $date = new DateTime();
+        $heure = $date->setTimezone($europe);
+
         $request->validate([
             'email' => 'required|unique:users|max:255',
             'name' => 'required|max:255',
@@ -72,7 +78,8 @@ class AuthController extends Controller
                 'email' => $request->email,
                 'name' => $request->name,
                 'password' => Hash::make($request->password),
-                'code_verif' => $codeVerif
+                'code_verif' => $codeVerif,
+                'date_verif' => $heure
                 ]); 
 
         } else {
@@ -88,7 +95,7 @@ class AuthController extends Controller
         } else {
 
             Mail::to($user)->send(new VerificationMailMailer($user));
-            return redirect('accueil/')->with([]);
+            return redirect('sign')->with("info", "Votre compte a bien été enregistré ! Veuillez confirmer votre email en cliquant sur le lien qui vous a été envoyé par email.");
 
         }
     }
@@ -101,23 +108,42 @@ class AuthController extends Controller
     public function confirmEmail(string $codeVerif){
 
         $user = User::where('code_verif', $codeVerif)->first();
-        // var_dump($user);
-        // die;
 
         if ($user) {
 
-            User::where('code_verif', $codeVerif)
-                ->where('is_verified', false)
-                ->update(['is_verified' => true, 'code_verif' => null]);
+                $europe = new DateTimeZone("Europe/Paris");
+                $date = new DateTime();
 
-            Auth::login($user);
-            return redirect('accueil/');
+                $maxVerifDate = $date->setTimeZone($europe);
+                $maxVerifDate->modify('+1 day');
 
-        } else {
+                if ($user->date_verif < $maxVerifDate) {
 
-            return redirect('confirm')->with("error", "Aucun utilisateur n'existe avec ce code de vérification");
+                    User::where('code_verif', $codeVerif)
+                        ->where('is_verified', false)
+                        ->update(['is_verified' => true, 'date_verif' => null , 'code_verif' => null]);
 
-        }
+                    Auth::login($user);
+                    return redirect('accueil/');
 
+                } else {
+
+                    $newCodeVerif = Str::random(64);
+                    $heure = $date->setTimezone($europe);
+
+                    User::where('code_verif', $codeVerif)
+                        ->where('is_verified', false)
+                        ->update(['is_verified' => false, 'date_verif' => $heure , 'code_verif' => $newCodeVerif]);
+
+                    Mail::to($user)->send(new VerificationMailMailer($user));
+                    return redirect('sign')->with("error", "La date de vérification de votre email a expériée. Un nouvel email vous a été envoyé.");
+
+                }
+
+            } else {
+
+                return redirect('confirm')->with("error", "Aucun utilisateur n'existe avec ce code de vérification");
+
+            }
     }
 }
